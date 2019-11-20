@@ -1,5 +1,20 @@
 body {
-	color: grey;
 	background-color: black;
+	color: grey;
+}
+
+.aboutheader {
 	text-align: center;
+	padding-right: 100px;
+}
+
+.header {
+	text-align: center;
+}
+
+.aboutme {
+	float: right;
+	width: 17%;
+	padding-right: 100px;
+	font-size: 12px;
 }
