@@ -1,20 +1,46 @@
+a {
+	color: lightgrey;
+}
+
 body {
 	background-color: black;
 	color: grey;
+	margin-left: 400px;
+	margin-right: 400px;
 }
 
-.aboutheader {
+.footer {
 	text-align: center;
-	padding-right: 100px;
+	bottom: 0px;
+	position: fixed;
+	left: 50%;
+	transform: translate(-50%, -50%);
 }
 
 .header {
 	text-align: center;
 }
 
-.aboutme {
-	float: right;
-	width: 17%;
-	padding-right: 100px;
-	font-size: 12px;
+.navigation {
+	text-align: center;
+	padding-bottom: 20px;
+}
+
+.navitem {
+	padding: 10px 30px;
+}
+
+.postheader {
+	text-align: left;
+	margin-right: 50%;
+	margin-top: 20px;
+}
+
+.postitem {
+	text-align: left;
+	margin-left: 50px;
+}
+
+.subheader {
+	text-align: center;
 }
