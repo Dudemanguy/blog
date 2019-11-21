@@ -4,21 +4,29 @@ a {
 
 body {
 	background-color: black;
+	font-size: small;
 	color: grey;
-	margin-left: 400px;
-	margin-right: 400px;
+	margin-left: 25%;
+	margin-right: 25%;
 }
 
 .footer {
 	text-align: center;
-	bottom: 0px;
-	position: fixed;
-	left: 50%;
-	transform: translate(-50%, -50%);
 }
 
 .header {
 	text-align: center;
+}
+
+.image {
+	clear: left;
+	float: left;
+	margin-bottom: 1em;
+	margin-right: 1em;
+}
+
+.large {
+	font-size: large;
 }
 
 .navigation {
@@ -32,7 +40,6 @@ body {
 
 .postheader {
 	text-align: left;
-	margin-right: 50%;
 	margin-top: 20px;
 }
 
@@ -43,4 +50,5 @@ body {
 
 .subheader {
 	text-align: center;
+	padding-bottom: 20px;
 }
