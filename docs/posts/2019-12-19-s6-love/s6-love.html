@@ -1,0 +1,54 @@
+<link href="/blog/stylesheet.css" rel="stylesheet" type="text/css">
+<meta charset="utf-8"/>
+
+<head>
+	<title>Dudemanguy's Musings</title>
+</head>
+
+<div class="header">
+	<h1>Dudemanguy's Musings</h1>
+</div>
+
+<div class="navigation">
+	<a class="navitem" href="/blog/index.html">Home</a>
+	<a class="navitem" href="/blog/all_posts.html">All Posts</a>
+	<a class="navitem" href="/blog/about.html">About Me</a>
+</div>
+
+<hr>
+
+<div class="subheader">
+	<h2>s6 Deserves More Love</h2>
+	<em>December 19, 2019</em>
+</div>
+
+<p>I don't use systemd. There's plenty of existing systemd rants on the internet that you can go read, so I won't spend too much time repeating them. Essentially, my problem with systemd is its absurd feature creep and complete lack of coherent vision. Nobody knows if systemd is an init system, a bootloader, a network daemon, its own OS, etc. It's a massive blob of features that shouldn't even be together in the same software but separate projects. It doesn't matter how good your programmers are. This massive amount of code will have issues at some point. One only needs to take a quick trip to github to see the massive amount of open <a href="https://github.com/systemd/systemd/issues">bug reports</a>. Of course, not all of those are neccesarily valid or even systemd's fault, but even a small fraction would be fairly concerning. Additionally, systemd has had quite a few <a href="https://www.cvedetails.com/vulnerability-list.php?vendor_id=7971&product_id=38088&version_id=0&page=1&hasexp=0&opdos=0&opec=0&opov=0&opcsrf=0&opgpriv=0&opsqli=0&opxss=0&opdirt=0&opmemc=0&ophttprs=0&opbyp=0&opfileinc=0&opginf=0&cvssscoremin=0&cvssscoremax=0&year=0&cweid=0&order=1&trc=20&sha=c135f62734809523dfa9a6bae0da12f80bf7a3d9">CVE's</a> which is never a good look for your product.</p>
+
+<p>There are, of course, alternative init systems to use. The most popular one is likely openrc and then followed by runit. But this time, I'm going to focus my attention on one particular init system that seldom gets mentioned and is unfairly overlooked: <a href="https://skarnet.org/software/s6/">s6</a>. As a disclaimer, I am the guy that added s6 support to <a href="https://artixlinux.org/">Artix Linux</a>, so I am biased. However, s6 had the ability to do many interesting things, and it inspired me to take the time to add it Artix Linux in the first place. The s6 suite is finally the one init system that does everything right.</p>
+
+<p>If you're familiar with runit, you can sort of think of s6 as a more sophisticated runit. It's a bit unfair to the man behind all the skarnet software, Laurent Bercot, since that description sells s6 a bit short, but it's a good starting point. s6 is another supervision suite inspired by <a href="http://cr.yp.to/daemontools.html">daemontools</a>. Like daemontools, s6 provides process supervision. Essentially, you start a hierarchy of processes at boot time called a supervision tree. Every daemon you startup is monitored by a part of the supervision tree. If a daemon suddenly dies (i.e. the internet goes out), it is automatically restarted. s6 is an implementation of these concepts, and it does these things in the most efficient, flexible, and portable way possible.</p>
+
+<p>To be more exact, s6 is purely the process supervision suite part, and it provides some additional libraries that can be used by other programs. In Artix Linux, we also use s6-rc, the service manager, and s6-linux-init, the part that actually does init for you. Both s6-rc and s6-linux-init make use of the libraries provided by s6 and integrate nicely within the process supervisior framework it creates. The combination of s6, s6-rc, and s6-linux-init provides a complete init system. You can easily manage your daemons, oneshots, dependencies, and all that good stuff. As far as I know, Artix Linux is one of the very few distros out there that offer this as an option.</p>
+
+<p>As I alluded to earlier, s6-rc has the ability to manage service dependencies, but it also does parallel startup. This already gives it a leg up over openrc and runit in my view. The former, openrc, was not designed with process supervision or parallelism in mind. Both of these things were added after the fact (supervise-daemon and the parallel option) and both of them are still considered experimental. Additionally, openrc itself can't do any process supervision, it relies on a backend from somewhere else (ex. runit or s6 itself) to do it. Unlike runit, s6 can guarantee race-free, proper dependency management. In runit, you have to rely on a check script which is a bit hacky and relies on polling. s6 has a sophisticated, <a href="https://skarnet.org/software/s6/notifywhenup.html">startup notification</a> that properly notify when a service is actually up by simply writing to an fd. In Artix Linux, we currently do this in dbus and there are likely other daemons that also support this kind of mechanism and should be switched over.</p>
+
+<p>Another excellent feature of s6-rc is the way it handles different types of services. There are plenty of things that aren't daemons, but you want to launch at boot time anyway (i.e. mounting filesystems). s6-rc supports these as "oneshot" services which can execute commands on boot up and also optionally when shutting down. An actual daemon is considered to be a "longrun" internally. Additionally, different types of services can be bundled together in a "bundle" service. This is like runlevels in openrc but even more flexible. You can put bundles in other bundles. This makes it easy to organize a sophisticated set of startup scripts for any system, and we do that in Artix Linux with a simple, understandable collection of startup scripts called <a href="https://gitea.artixlinux.org/artix/s6-scripts">s6-scripts</a>.</p>
+
+<p>Of course, you may ask, "if s6 is so great, how come no one uses it?" Indeed, that is a bit of a tragedy. The documentation is very good. The software is easy to build and easy to use. I suppose in the earliest days there were some more unconventional choices (using the slashpackage convention for example), but those are long gone. All of the s6 software should integrate quite easily into any distro that has a halfway decent packaging system. After all, I'm just one dude and I did it without too much trouble. I just had some free time and burned a few weekends setting it all up. Duplicating scripts from other init systems took some time, of course, but most of it was relatively easy.</p>
+
+<p>I suppose some people make big issues out of things that don't actually matter like the execline dependency. I haven't mentioned it, but the s6 suite requires execline as a dependency. Execline is a non-interactive scripting language that s6 software internally uses. That probably sounds terrible to some people, but execline is extremely tiny and designed for use on embedded systems. I concur with the author's <a href="https://skarnet.org/software/execline/dieshdiedie.html">rationale</a> for using it. Parsing definitely sucks; I've dealt with that myself. Also, you <em>don't</em> even have to use execline for your scripts. It runs with traditional shell just fine. In Artix Linux, a handful of complicated scripts are actually executed in sh (partly because of my laziness and because I'm not sure if there's a sane way to convert those to execline). However, the vast majority of scripts we use are in execline. A thing that should be kept in mind is that a service script should be very simple and fairly minimal. In s6, there is no need to make a disgusting looking sysvinit-style script. Using execline is a nice way to keep your scripts very simple and clean, and take advantage of execline's benefits.</p>
+
+<p>I suppose another thing that might upset people is the usage of a compiled database for s6-rc. The author's rational is once again, avoiding parsing and keeping performance efficient (parsing a ton of stuff on an embedded system definitely can be slow). I don't consider this a real issue either. All of the s6-rc tools lend themselves well to scripting so there is no real inconvenience. In Artix Linux, I wrote a shell hook that creates a new database with a unique name, updates to the freshly created database, and preserves bundles and their contents (as long as the services still exist of course) from previous databases. This is executed whenever a user installs or removes an *-s6 script from the repo. If a user wants to write his own scripts, he can just add it to the /etc/s6/sv directory and manually run the hook himself.</p>
+
+<p>In my view, s6 is the most complete and most correct init system out there. Behemoths like systemd are riddled with issues: technical and political. Some of the common alternatives like runit and openrc, do work well but have some drawbacks. Of course, s6 isn't necessarily perfect, but it's the closest init system to perfect that I'm aware of. I hope that other non-systemd distros look into adding support for s6. It is not a difficult thing to do, and there certainly are some big benefits. Artix Linux is not exactly a big or famous distro, but at least we commonly get namedropped when people ask for non-systemd distros. Hopefully, that can bring more exposure to s6 and encourage more people to use it.</p>
+
+<p>Footnote: I thought it was worth sharing, but this particular <a href="https://blog.darknedgy.net/technology/2015/10/11/0/">blog post</a> has the most detailed, technical analysis of systemd that I have ever seen. It's well worth a read.</p>
+
+<br>
+
+<hr>
+
+<div class="footer">
+	<a class="navitem" href="https://github.com/Dudemanguy">Github</a>
+	<a class="navitem" href="https://github.com/Dudemanguy/blog">Website Source</a>
+</footer>
