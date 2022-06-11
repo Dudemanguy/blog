@@ -4,7 +4,7 @@ a {
 
 body {
 	background-color: black;
-	font-size: small;
+	font-size: 18px;
 	color: grey;
 	margin-left: 25%;
 	margin-right: 25%;
@@ -26,7 +26,7 @@ body {
 }
 
 .large {
-	font-size: large;
+	font-size: 32px;
 }
 
 .navigation {
