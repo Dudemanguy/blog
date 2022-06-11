@@ -6,8 +6,9 @@ body {
 	background-color: black;
 	font-size: 18px;
 	color: grey;
-	margin-left: 25%;
-	margin-right: 25%;
+	margin-left: 15%;
+	margin-right: 15%;
+	min-width: 1024px;
 }
 
 .footer {
