@@ -34,7 +34,7 @@
 
 <br>
 
-<span class="large">What even is Wayland anyway?</span>
+<h2>What even is Wayland anyway?</h2>
 
 <p>This is the first thing should probably be addressed. Strictly speaking, Wayland is "just a protocol" (this phrase is often used, justified or not, when pointing out some shortcomings). The implementation of this is libwayland which is what everyone uses. It's basically an asynchronous IPC library which defines several things useful to run a mini-display server. You get abstractions for outputs, inputs, and all sorts of stuff with it. This is fine and works well for what it is. The only issue is that the Wayland protocol, by itself, is far too minimal to run a modern desktop. You're going to also need several additional extensions to do this.</p>
 
@@ -44,7 +44,7 @@
 
 <br>
 
-<span class="large">Wayland's client API is gimped.</span>
+<h2>Wayland's client API is gimped.</h2>
 
 <p>This one is more of a design choice as opposed to an actual technical limitation, but it's another downside of Wayland in comparison to Xorg. In Xorg you can do almost anything. Arguably, it has too many features, but as a user and developer you have the power and choice. Move a window to an exact location? Draw silly decorations on another window? Know when exactly the window is out of view (yes, you really can't do this on Wayland)? No problem. Xorg has nearly everything under the sun you can think of. The documentation of xcb may be pretty bad (probably why most people still use xlib), but it's an extremely sophisticated asynchronous API that basically has no limits.</p>
 
@@ -56,9 +56,9 @@
 
 <br>
 
-<span class="large">Wayland's lack of feature parity with Xorg cripples it.</span>
+<h2>Wayland's lack of feature parity with Xorg cripples it.</h2>
 
-<p>One of the things Wayland developers were quick to say is that they aren't going to implement a feature just because it exists in Xorg. That's fair enough. Nobody really needs to use Xorg's server drawing for anything besides demo applications after all. Just use cairo or whatever. The problem is that they took out many features the users depend on with no real replacement in sight. The goal of Wayland is to completely replace X11. Breaking people's workflows is never a good selling. Compare Wayland to some other FOSS projects like Systemd or Pipewire. Both of those offered full compatibility with the legacy, old way while adding lots of new features and functionalities. That was why people rapidly switched to those projects. To be fair, XWayland does exist, and it works well for what it is. But it's not going to save you when you want to do things with native Wayland applications. For a typical user, switching to Wayland breaks their workflow and offers nothing aside from meager gains like theoretically saving a GPU->GPU copy in some cases. That's nice, but let's be honest, no one really cares.</p>
+<p>One of the things Wayland developers were quick to say is that they aren't going to implement a feature just because it exists in Xorg. That's fair enough. Nobody really needs to use Xorg's server drawing for anything besides demo applications after all. Just use cairo or whatever. The problem is that they took out many features the users depend on with no real replacement in sight. The goal of Wayland is to completely replace X11. Breaking people's workflows is never a good selling point. Compare Wayland adoption to some other FOSS projects like Systemd or Pipewire. Regardless of your opinion of their quality, both of those offered full compatibility with the legacy, old way while adding lots of new features and functionalities. That was why people rapidly switched to those projects. To be fair, XWayland does exist, and it works well for what it is. But it's not going to save you when you want to do things with native Wayland applications. For a typical user, switching to Wayland breaks their workflow and offers nothing aside from meager gains like theoretically saving a GPU->GPU copy in some cases. That's nice, but let's be honest, no one really cares.</p>
 
 <p>A particularly amusing example is screen recording not working. By design, Wayland doesn't allow clients to see the contents of another client. This is something I mostly regard as "security theater" (I don't install malware), but it's fine to make that the default. Just add some protocol to allow it right? Well in almost 14 years, they never came up with such a thing. There are many, obvious valid reasons why a user may want to record their screen, but somehow Wayland developers never bothered to address it. Hilariously enough, they didn't even fix this. The Pipewire guy did. To be fair, there were some various implementations beforehand (all compositor-specific), but in the end the solution that won was using Pipewire. Of course on the Pipewire side, it doesn't even use Wayland code at all. It communicates with Dbus to an xdg-desktop-portal. There are compositor backends for this, but the standard interface for fixing this problem is Dbus not Wayland.</p>
 
@@ -68,7 +68,7 @@
 
 <br>
 
-<span class="large">Wayland's render loop design is ridiculous.</span>
+<h2>Wayland's render loop design is ridiculous.</h2>
 
 <p>This is one of those parts where the limited design of Wayland really hits you in the face. You must design your render loop in a certain way. If you don't, prepare to face the pain. How this works on Wayland is that you get a callback from the compositor (the infamous frame callback), which essentially acts as a hint telling you when to draw. That's cool. The idea is that the compositor tells you when to draw, you obey like a good client, and everything works. Unfortunately, life is not actually that simple. Most compositors throttle rendering by not sending frame callbacks when the client is hidden. Internally in Mesa, a swap interval of 1 on EGL and FIFO mode on Vulkan (AKA basically vsync) work by waiting for frame callbacks. Do you see where this is going? If your client tries to draw while it is hidden, woops it gets indefinitely stalled until you bring it back into view. Well surely the client can just check if it is visible before drawing, right? Actually no, you can't. That's right, clients have no way of knowing if they are hidden or not. It's common to come up with some heuristic to deal with this.</p>
 
@@ -78,7 +78,7 @@
 
 <br>
 
-<span class="large">Wayland's Mesa implementations are leagues behind Xorg's.</span>
+<h2>Wayland's Mesa implementations are leagues behind Xorg's.</h2>
 
 <p>I don't like speculating much about people's thoughts, but it feels like Wayland's frame callback notion was meant to be a centerpiece of how the whole thing operated. You could technically ignore it, but it's a central part of how compositors and Mesa operate, so as a client developer you probably have to deal with it. Instead of being a helpful hint, it's mostly just annoying unfortunately. The frame callback mechanism/workflow has several obvious limitations and one needs to look no further than Mesa itself.</p>
 
@@ -94,7 +94,7 @@
 
 <br>
 
-<span class="large">Wayland itself has bad core decisions.</span>
+<h2>Wayland itself has bad core decisions.</h2>
 
 <p>One of the selling points of Wayland is that it's a clean protocol designed for the modern age. There's no legacy baggage to deal with and since the core of it is good, it can easily be extended for whatever new things arrive in the future. Unfortunately, that's simply not true. Wayland's core protocol has made many bad decisions that we are all still dealing with today. Any legacy stuff about X11 can be reasonably excused with "well they came up with it in the 80s". Wayland was designed in 2008, and it's already failed to correctly predict several use cases.</p>
 
@@ -104,7 +104,7 @@
 
 <br>
 
-<span class="large">Was it really worth it?</span>
+<h2>Was it really worth it?</h2>
 
 <p>Xorg is by no means perfect, but it has one big thing going in its favor: it works. Yeah multi-monitor stuff is a pain. I'll even concede that multi-monitor VRR is currently broken in Xorg but works in (some) Wayland compositors. Note that moving the mouse amusingly breaks VRR in several Wayland compositors anyway. Developers, some paid and others unpaid, put in years of effort into working on Wayland. Here we are nearly 14 years later into this mess and Wayland is still leagues behind Xorg in several different ways. It's not just a matter of "oh we have a few bugs to fix". The Wayland ecosystem is woefully inferior overall, and there's really no sign of that changing anytime soon. While I'm sure Wayland works great on someone's smart TV, it's still not ready for the Linux desktop. We were told all along that Xorg is so bad and terrible that it needed to be started from scratch but at this point people need to be looking in the mirror and asking questions. If that 14 years of effort was instead focused onto solely improving Xorg, what would the result be? Surely, much more tangible results would have been gained at the end of the day.</p>
 
