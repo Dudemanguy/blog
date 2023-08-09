@@ -53,3 +53,9 @@ body {
 	text-align: center;
 	padding-bottom: 20px;
 }
+
+@media (prefers-color-scheme: dark) {
+	* {
+		color-scheme: dark;
+	}
+}
