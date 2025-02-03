@@ -6,6 +6,12 @@
 <link>https://dudemanguy.github.io/blog/</link>
 <atom:link href="https://dudemanguy.github.io/blog/rss.xml" rel="self" type="application/rss+xml"/>
 <item>
+  <title>Reassessing Wayland</title>
+  <description>Reassessing Wayland (Article)</description>
+  <link>https://dudemanguy.github.io/blog/posts/2025-02-03-wayland-xorg-2/wayland-xorg-2.html</link>
+  <guid isPermaLink="false">Post 72</guid>
+</item>
+<item>
   <title>四人囃子 - 一触即発</title>
   <description>四人囃子 - 一触即発 (Album Review)</description>
   <link>https://dudemanguy.github.io/blog/posts/2022-08-13-yonin-bayashi-isshoku-sokuhatsu/yonin-bayashi-isshoku-sokuhatsu.html</link>

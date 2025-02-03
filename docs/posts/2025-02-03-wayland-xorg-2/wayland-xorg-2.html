@@ -1,0 +1,80 @@
+<!DOCTYPE html>
+<html>
+
+<head>
+	<link href="/blog/stylesheet.css" rel="stylesheet" type="text/css">
+	<meta charset="utf-8"/>
+	<title>Reassessing Wayland</title>
+</head>
+
+<div class="header">
+	<h1>Dudemanguy's Musings</h1>
+</div>
+
+<div class="navigation">
+	<a class="navitem" href="/blog/index.html">Home</a>
+	<a class="navitem" href="/blog/all_posts.html">All Posts</a>
+	<a class="navitem" href="/blog/about.html">About Me</a>
+</div>
+
+<hr>
+
+<div class="subheader">
+	<h2>Reassessing Wayland</h2>
+	<em>February 03, 2025</em>
+</div>
+
+<p>So a bit under 3 years ago, I made my infamous Wayland rant post that is likely the most read post on this blog by miles. I should really actually write about music again one of these days, but that's a topic for another time. The language was perhaps a bit inflammatory, but I felt the criticisms I made at the time were fair. It was primarily born out some frustrations I had with the entire ecosystem, and it was not like I was the only sole voice. There are other people out there you can find that encountered their own unique Wayland problems and wrote about it.</p>
+
+<p>With that post, I probably cast myself as some anti-Wayland guy which is my own doing, but I promise you that is not the case. You can check my mpv commits, and it's businesses as usual. Lots of Wayland fixes, features, and all that good stuff. Quite some time has passed since then, and it is really overdue look at the situation again with all the new developments in mind. To be frank, my original post is very outdated and it is not fair to leave it up in its current state without acknowledging the work that has been done. So in comparison to 3 years ago, I have a much more positive outlook now.</p>
+
+<br>
+
+<h2>Upstream Wayland basically fixed most of the technical things I complained about.</h2>
+
+<p>I mean honestly that kind of sums it up. In retrospect, it is a bit surprising. Maybe I should publicly complain more if it gets me these kinds of results (this is a joke everybody). But a good example here would be the support of explicit sync. Not too long ago, I did not think we were going to be anywhere close to this being a thing. To be frank, Linux in general was pretty far behind on this front. Getting explicit sync took a lot of work all over the graphics space: kernel, mesa, protocol changes, compositors, etc. Nvidia of all companies (a certain famous Linus video comes to mind) was a key player in making this a reality. Kudos to everyone who put in work to get that done. I honestly assumed we were still going to be implicit sync only for most of the 2020s.</p>
+
+<p>Another big development is the introduction of the commit-timing and fifo protocols to finally solve the dreaded "compositor stalls the rendering thread" issue. In the past, clients on Wayland had no way to know if they were visible and compositors would indefinitely throttle the rendering thread of your client if you rendered offscreen. For many, the workaround in this case is to set mailbox mode (or the equivalent in whatever you are doing) and just blast away. People that raised issues with this behavior upstream often got mixed responses, so I was skeptical that this would ever change.</p>
+
+<p>Mesa now currently supports commit-timing and fifo in vulkan which allows surfaces to stay in vsync without being indefinitely stalled by the compositor, as long as the compositor supports it of course. This was particularly important for people playing games through wine and whatnot. It is not like refactoring the rendering loop of ancient proprietary games to be Wayland-friendly was realistically possible, so this behavior was quite a brick wall. Compositor implementations are still in the works for this and there's still no support on the EGL side yet, but from my testing it works perfectly well. From mpv's perspective, it allows us to skip a particular piece of code that I personally find quite cursed, so I am rather happy about this. It's also potentially possible to use commit-timing and fifo internally for some of our other Wayland VOs. That requires investigation.</p>
+
+<p>Speaking of Mesa, I did bash it a little bit in the old post, so I suppose I need to apologize now. It's true that at the time, the implementations were a bit on the lacking side, but it's a much different story now. In those 3 years since then, a massive amount of effort has been put into Wayland wsi. Lots of developers made some rather large sweeping changes. Things like immediate mode, explicit sync, presentation timestamps, etc. are all in there now. There's also an open MR right now for the color management protocol for the vulkan in Mesa. That protocol has been in development hell for a long time, but we're all finally seeing the light at the end of the tunnel. I expect it will be finalized in the near future. There are several proven implementations, and the only comments left are all relatively minor. Once that's all in place, HDR on Wayland will actually just work out of the box. It's exciting honestly.</p>
+
+<br>
+
+<h2>The wayland-protocols upstream itself got way better.</h2>
+
+<p>It's not exactly a secret, but wayland-protocols was a bit of a painful upstream. It is not that any of the main people were unpleasant or anything; I've had mostly positive experiences myself. It's was just more that movement in general in that space was colossally slow and every little thing got discussed to death. The bar for getting protocols in was incredibly high, and it just seemed like something that was nearly impossible.</p>
+
+<p>I'm not sure if there's a definite turning point, but things in that repo move much faster than they used to. There was a fairly high profile merge request to add an experimental namespace to wayland-protocols. This is, of course, welcome, but honestly even before that I thought the repo had already made leaps and bounds when it came to reviewing and accepting contributions. When I made my original post, wayland protocols was at 1.25. At the time of writing, we are on 1.40, so a whopping 15 more versions. And it is not like those are just small pointless bumps. Lots of protocols that I would consider fairly major (fractional-scale, linux-drm-syncobj, tearing-control, fifo, etc.) found their way into upstream in that time frame. One of the common Wayland complaints was how restricted you felt as client sometimes and protocols like that go a very long way in addressing that concern.</p>
+
+<p>Heck even the little things are better now. I never complained about it much because it is not a big deal, but I always thought that the default stance of Wayland to use client side cursors was silly. Most applications don't care about drawing the cursor at all. Considering that most compositors are going to be drawing a cursor anyway, why not just let clients use that? And indeed this was fixed with the cursor shape protocol. All the little annoyances about inconsistent cursor sizes go away if you just let the compositor handle it. Again, not a major issue or anything but it's a nice example of one of those little pestering things being addressed. Furthermore, there's even a screencopy protocol in upstream as well. This was another one of those things I thought that was going to be a "never ever" since many compositor developers were not particularly found of the idea of clients potentially recording the screen. Now sure, plenty of compositors do not support it currently, but at least you can finally target something purely through Wayland APIs to get what you need.</p>
+
+<br>
+
+<h2>Of course, nothing is perfect.</h2>
+
+<p>In the past, I felt a bit annoyed at people overselling Wayland when there were so many things still wrong with it on the fundamental level. But it's a dramatically different story today. For most use cases, Wayland should be as good or even better at this point. There is a big list of factors that you need to weigh to make this assessment, but the scales are in Wayland's favor. Now of course, there's still plenty of work to do. One personal pain point of mine is the inability to embed foreign surfaces without making your application its own compositor. This is one of those things that works fine on other platforms, but is still lacking on Wayland. Another is the whole issue with an application with multiple windows managing them on Wayland. That was a fairly visible issue when it was brought up, and work is still being done trying to find a solution for that.</p>
+
+<p>In terms of development philosophy, the usual group of compositor/upstream developers are still a lot more on the "policy" side of the fence as opposed to "mechanism". I personally lean the opposite, but the Wayland side of the house has gotten much more flexible lately. A lot of things that you used to just not be able to do are possible now. As a small pain point, the general Wayland ecosystem is still a bit chaotic. You have the army of compositors to deal with and the plethora of protocols to thumb through. It's just a consequence of the core protocol being so small and everyone writing their own server implementations instead of sharing one, but it's manageable. Sure I have to write a bunch of boilerplate for any protocol I want to use and test against the usual group of compositors to figure out if it's my bug or their bug, but if it does what I need, I'm a happy camper at the end of the day.</p>
+
+<br>
+
+<h2>So what about Xorg?</h2>
+
+<p>The story is a bit interesting here since 2024 saw a surge in activity in Xorg due to mostly one guy although that may end up being a fluke. Time will tell on that one. There are people that are quick to deride Xorg, but I still think it has its place and there will still be many users of it (not just xwayland) for many years to come. Sure, GTK 5 won't support Xorg which is not surprising, but I doubt QT or most applications in general are looking to delete their Xorg backends anytime soon. And there's still some known gaps between Xorg and Wayland compositors. For example, the recently publicized about mouse latency differences is true and something I've noticed but the difference doesn't particularly bother me. Something like that is just one of those inevitable consequences of the design of Wayland being so fundamentally different.</p>
+
+<p>I do still wish that Wayland could have been a bit more conservative and "Xorg-like" in its original approach. It's, of course, far too late for that, but it does feel like a lot of the underlying pain points are self-inflicted and could have been avoided with less radical design choices. But at the same time, it is true that Wayland is where all of the work is going these days and I would say it has eclipsed Xorg in most things at this point minus some specific areas. As for Xorg, if people still want to develop and use it, I see no problem with that. It can coexist just fine. Perhaps one day in the future I'll realize that virtually nobody uses any of the Xorg code. When we reach that point, I can consider removing the code. But that seems far off into the future, and I see no reason worry about that anytime soon.</p>
+
+<p>In the meantime, I'll be fair to Wayland and compositor developers. They've fixed <em>a ton</em> of stuff recently and deserve credit for it. On mpv's side of the house, I've been helped multiple times and have gotten good contributions from multiple compositor developers. It's been a long haul, but truly things in a far better state now. The amount of progress in a relatively short period of time is remarkable and honestly unexpected. It's not right to continue to be grouchy and negative when real problems are being solved. We'll see how the rest of the decade goes, but it's looking like an uphill trajectory thus far.</p>
+
+<br>
+
+<hr>
+
+<div class="footer">
+	<a class="navitem" href="https://github.com/Dudemanguy">Github</a>
+	<a class="navitem" href="/blog/rss.xml">RSS</a>
+	<a class="navitem" href="https://github.com/Dudemanguy/blog">Website Source</a>
+</div>
+</html>

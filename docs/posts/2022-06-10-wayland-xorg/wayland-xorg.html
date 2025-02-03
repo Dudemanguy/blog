@@ -24,6 +24,12 @@
 	<em>June 10, 2022</em>
 </div>
 
+<h2>Note</h2>
+
+<p>This entire post is severely outdated much to my pleasant surprise. I've written up a follow-up post you can read <a href="https://dudemanguy.github.io/blog/posts/2025-02-03-wayland-xorg-2/wayland-xorg-2.html">here</a>. The text is still here for historical reasons.</p>
+
+<br>
+
 <p>As you all know, the Linux desktop is dominated by Xorg. The X11 protocol originated in the 80s which later ended up being adopted by Linux desktop systems. It survived all the way to this day as Xorg, and I'm using it right now to make this post. While it is remarkable that X11 has survived so long, it's certainly not flawless. There's some questionable parts of the core protocol and old legacy baggage that is still carried to this day. Developers, unsurprisingly, wanted a fresh start from scratch free from all the legacy, dated decisions that X11 made. This is what led to the birth of Wayland, way back in 2008.</p>
 
 <p>In recent years, Wayland's push to the Linux desktop space accelerated, and users could actually start using this "new" (not really new but...) protocol as their daily driver on the desktop. I, myself, was one of the early adopters in those days. The promise was a clean, lean protocol designed for modern systems that could handle all the complexities people expect in today's computing. The major GUI toolkits have all implemented Wayland support. There are several big name Wayland compositors. Other major applications like Firefox, Chromium, etc. support it now and have for years. So with all of these pieces in place, why aren't we all living in a glorious Wayland future? Sure, those guys on Nvidia may have some issues, but it should be smooth sailing for everyone else. Right?</p>
